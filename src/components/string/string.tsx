@@ -89,7 +89,6 @@ export const StringComponent: React.FC = () => {
           }
         </div>
       </div>
-
     </SolutionLayout>
   );
 };

@@ -24,9 +24,9 @@ code {
 }
 
 .vis {
-  margin-top: 120px;
+  padding: 48px 0;
   display: flex;
-  flex-wrap: nowrap;
-  column-gap: 16px;
+  flex-wrap: wrap;
+  gap: 78px 16px;
   justify-content: center;
 }
