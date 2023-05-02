@@ -60,7 +60,7 @@ export const FibonacciPage: React.FC = () => {
         </form>
         <div className="vis">
           {
-            circles.map((item, index) => <Circle letter={item.toString()} index={index} key={`${item} + ${index}`} extraClass={styles.fibAnim}/>)
+            circles.map((item, index) => <Circle letter={item.toString()} index={index} key={`${item}${index}`} extraClass={styles.fibAnim}/>)
           }
         </div>
       </div>
