@@ -68,7 +68,6 @@ export const StringComponent: React.FC = () => {
 
     const stringArr = inputString.split('');
     const newCircles = stringArr.map(item => ({value: item, state: ElementStates.Default}));
-    // console.log(stringArr.map(item => ({value: item, state: ElementStates.Default})));
     setCircles(newCircles);
     setTimeout(() => {reverseArr(newCircles)}, DELAY_IN_MS);
   };
@@ -79,7 +78,7 @@ export const StringComponent: React.FC = () => {
         <form action="#" onSubmit={startAnimation}>
           <div className="condition">
             <Input maxLength={11} isLimitText={true} onChange={onChange} name={'string'} disabled={reversing}/>
-            <Button text={'Развернуть'} type={'submit'} name={'string'} disabled={!inputString.length} isLoader={reversing}/>
+            <Button text={'Развернуть'} type={'submit'} disabled={!inputString.length} isLoader={reversing}/>
           </div>
         </form>
         <div className="vis">
