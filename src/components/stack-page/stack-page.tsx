@@ -1,4 +1,4 @@
-import React, {ChangeEvent, FormEventHandler, useCallback, useMemo, useRef, useState} from "react";
+import React, {ChangeEvent, FormEventHandler, useCallback, useMemo, useState} from "react";
 import {SolutionLayout} from "../ui/solution-layout/solution-layout";
 import {Input} from "../ui/input/input";
 import {Button} from "../ui/button/button";
@@ -48,7 +48,6 @@ type TCircle = {
 export const StackPage: React.FC = () => {
   const [ inputString, setInputString ] = useState<string>("");
   const [ circles, setCircles ] = useState<TCircle[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const stack = useMemo(() => new Stack<string>(), []);
 
@@ -69,7 +68,7 @@ export const StackPage: React.FC = () => {
     }));
 
     setTimeout(() => {
-      setCircles(arr.map(item => ({value: item, state: ElementStates.Default})));
+      setCircles(arr.map(item => ({ value: item, state: ElementStates.Default })));
     }, SHORT_DELAY_IN_MS);
 
     const input: HTMLInputElement | null = document.querySelector(".text_type_input");
@@ -82,14 +81,10 @@ export const StackPage: React.FC = () => {
   }, [inputString, setCircles, stack]);
 
   const onDelete = useCallback(() => {
-    setCircles(circles.slice().map((item, index) => {
-      const isLast = index === circles.length - 1;
-      return { value: item.value, state: isLast ? ElementStates.Changing : ElementStates.Default};
-    }));
+    setCircles(circles.slice().map((item, index) => ({ value: item.value, state: index === circles.length - 1 ? ElementStates.Changing : ElementStates.Default })));
     setTimeout(() => {
       stack.pop();
-      const arr = stack.getArray();
-      setCircles(arr.map(item => ({value: item, state: ElementStates.Default})));
+      setCircles(stack.getArray().map(item => ({ value: item, state: ElementStates.Default })));
     }, SHORT_DELAY_IN_MS);
   }, [setCircles, circles, stack]);
 
@@ -103,15 +98,41 @@ export const StackPage: React.FC = () => {
       <div className="container">
         <form action="#" onSubmit={onSubmit}>
           <div className="condition">
-            <Input maxLength={4} isLimitText={true} onChange={onChange} name={'string'} extraClass={styles.input} />
-            <Button text={"Добавить"} type={"submit"} disabled={!inputString.length} />
-            <Button text={"Удалить"} disabled={!circles.length} onClick={onDelete}/>
-            <Button text={"Очистить"} type={"reset"} disabled={!circles.length} style={{marginLeft: "auto"}} onClick={reset} />
+            <Input
+              maxLength={4}
+              isLimitText={true}
+              onChange={onChange}
+              name={"string"}
+              extraClass={styles.input}
+            />
+            <Button
+              text={"Добавить"}
+              type={"submit"}
+              disabled={!inputString.length}
+            />
+            <Button
+              text={"Удалить"}
+              disabled={!circles.length}
+              onClick={onDelete}
+            />
+            <Button
+              text={"Очистить"}
+              type={"reset"}
+              disabled={!circles.length}
+              style={{marginLeft: "auto"}}
+              onClick={reset}
+            />
           </div>
         </form>
-        <div className="vis" ref={containerRef}>
+        <div className="vis">
           {
-            circles.map((item, index) => <Circle letter={item.value} state={item.state} head={index === circles.length - 1 ? "top" : ""} tail={index.toString()} key={index}/>)
+            circles.map((item, index) => {
+              return <Circle
+                letter={item.value}
+                state={item.state}
+                head={index === circles.length - 1 ? "top" : ""}
+                tail={index.toString()} key={`${item}${index}`}/>
+            })
           }
         </div>
       </div>
