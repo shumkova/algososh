@@ -34,10 +34,38 @@ code {
   align-items: flex-end;
   gap: 78px 16px;
   justify-content: center;
+  list-style: none;
+  margin-left: 0;
+}
+
+.vis_align-center {
+  align-items: center;
 }
 
 .vis_columns {
   box-sizing: border-box;
   flex-wrap: nowrap;
   min-height: 440px;
+}
+
+.vis__item {
+  display: flex;
+  align-items: center;
+  gap: 0 16px;
+}
+
+.vis__arrow {
+
+}
+
+.vis__arrow_state_default {
+  color: var(--default-color);
+}
+
+.vis__arrow_state_changing {
+  color: var(--changing-color);
+}
+
+.vis__arrow_state_modified {
+  color: var(--modified-color);
 }

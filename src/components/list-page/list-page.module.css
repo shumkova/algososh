@@ -1,0 +1,13 @@
+.input {
+  max-width: 204px;
+  flex-shrink: 0;
+}
+
+.condition {
+  margin-bottom: 12px;
+}
+
+.condition button {
+  flex-grow: 1;
+  width: 20%;
+}

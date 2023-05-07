@@ -131,7 +131,9 @@ export const StackPage: React.FC = () => {
                 letter={item.value}
                 state={item.state}
                 head={index === circles.length - 1 ? "top" : ""}
-                tail={index.toString()} key={`${item}${index}`}/>
+                tail={index.toString()}
+                key={`${item}${index}`}
+              />
             })
           }
         </div>
