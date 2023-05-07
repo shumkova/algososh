@@ -7,7 +7,7 @@ import {useForm} from "../../hooks/use-form";
 import {ElementStates} from "../../types/element-states";
 import {Circle} from "../ui/circle/circle";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
-import {pause, randomArr} from "../../utils";
+import {clearInput, pause, randomArr} from "../../utils";
 import {LinkedList} from "./linked-list";
 import {TCircle} from "../../types/circle";
 
@@ -43,9 +43,7 @@ export const ListPage: React.FC = () => {
     const inputs = document.querySelectorAll<HTMLInputElement>("input");
     if (inputs.length) {
       inputs.forEach(input => {
-        input.value = "";
-        const e = new Event("change");
-        input.dispatchEvent(e);
+        clearInput(input);
       })
       setValues({value: "", position: ""});
     }
@@ -164,28 +162,28 @@ export const ListPage: React.FC = () => {
             />
             <Button
               text={"Добавить в head"}
-              disabled={!values.value.length || !!anim}
+              disabled={!values.value.length || (!!anim && anim !==Anim.addHead)}
               extraClass={styles.button}
               onClick={addHead}
               isLoader={anim === Anim.addHead}
             />
             <Button
               text={"Добавить в tail"}
-              disabled={!values.value.length || !!anim}
+              disabled={!values.value.length || (!!anim && anim !==Anim.addTail)}
               extraClass={styles.button}
               onClick={addTail}
               isLoader={anim === Anim.addTail}
             />
             <Button
               text={"Удалить из head"}
-              disabled={!linkedList.getSize()}
+              disabled={!linkedList.getSize() || (!!anim && anim !==Anim.removeHead)}
               extraClass={styles.button}
               onClick={removeHead}
               isLoader={anim === Anim.removeHead}
             />
             <Button
               text={"Удалить из tail"}
-              disabled={!linkedList.getSize()}
+              disabled={!linkedList.getSize() || (!!anim && anim !==Anim.removeTail)}
               style={{marginLeft: "auto"}}
               extraClass={styles.button}
               onClick={removeTail}
@@ -208,14 +206,14 @@ export const ListPage: React.FC = () => {
               text={"Добавить по индексу"}
               type={"submit"}
               extraClass={styles.button}
-              disabled={!values.value || !values.position.length || Number(values.position) >= linkedList.getSize()}
+              disabled={!values.value || !values.position.length || Number(values.position) >= linkedList.getSize() || (!!anim && anim !==Anim.addIndex)}
               onClick={addByIndex}
               isLoader={anim === Anim.addIndex}
             />
             <Button
               text={"Удалить по индексу"}
               extraClass={styles.button}
-              disabled={!linkedList.getSize() || !values.position.length || Number(values.position) >= linkedList.getSize()}
+              disabled={!linkedList.getSize() || !values.position.length || Number(values.position) >= linkedList.getSize() || (!!anim && anim !==Anim.removeIndex)}
               isLoader={anim === Anim.removeIndex}
               onClick={removeByIndex}
             />

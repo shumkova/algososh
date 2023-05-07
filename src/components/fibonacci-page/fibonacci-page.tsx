@@ -1,22 +1,17 @@
-import React, { ChangeEvent, FormEventHandler, useCallback, useMemo, useState } from "react";
+import React, { FormEventHandler, useCallback, useState } from "react";
 import { SolutionLayout } from "../ui/solution-layout/solution-layout";
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
 import { SHORT_DELAY_IN_MS } from "../../constants/delays";
 import styles from "./fibonacci-page.module.css";
-import {pause} from "../../utils";
+import {clearInput, pause} from "../../utils";
+import {useForm} from "../../hooks/use-form";
 
 export const FibonacciPage: React.FC = () => {
-  const [ inputNumber, setInputNumber ] = useState<number | null>(null);
+  const { values, setValues, handleChange } = useForm<{ fibLength: string }>({ fibLength: "" });
   const [ calculating, setCalculating ] = useState(false);
   const [ circles, setCircles ] = useState<number[]>([]);
-
-  const isValid = useMemo(() => (inputNumber && inputNumber >= 0 && inputNumber <= 19), [inputNumber]);
-
-  const onChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    setInputNumber(Number(evt.target.value));
-  }
 
   const fib = useCallback(async (n:number) => {
     let arr: number[] = [];
@@ -35,9 +30,17 @@ export const FibonacciPage: React.FC = () => {
 
   const onSubmit: FormEventHandler = (evt) => {
     evt.preventDefault();
-    if (inputNumber && isValid) {
+    const { fibLength } = values;
+    if (fibLength.length > 0) {
       setCalculating(true);
-      fib(inputNumber).then(() => setCalculating(false));
+      fib(Number(fibLength)).then(() => {
+        const input = document.querySelector<HTMLInputElement>("input");
+        if (input) {
+          clearInput(input);
+        }
+        setValues({fibLength: ""});
+        setCalculating(false);
+      });
     }
   }
 
@@ -46,8 +49,8 @@ export const FibonacciPage: React.FC = () => {
       <div className="container">
         <form action="#" onSubmit={onSubmit}>
           <div className="condition">
-            <Input type={'number'} isLimitText={true} onChange={onChange} name={'number'} disabled={calculating} min={0} max={19} />
-            <Button text={'Развернуть'} type={'submit'} name={'string'} disabled={!isValid} isLoader={calculating}/>
+            <Input type={'number'} isLimitText={true} onChange={handleChange} name={'fibLength'} disabled={calculating} min={0} max={19} />
+            <Button text={'Развернуть'} type={'submit'} disabled={!values.fibLength.length} isLoader={calculating}/>
           </div>
         </form>
         <div className="vis">

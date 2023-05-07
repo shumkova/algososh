@@ -22,3 +22,9 @@ export const randomArr = (minLen: number, maxLen: number): number[] => {
 
   return arr;
 }
+
+export const clearInput = (input: HTMLInputElement) => {
+  input.value = "";
+  const e = new Event("change");
+  input.dispatchEvent(e);
+}

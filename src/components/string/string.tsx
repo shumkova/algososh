@@ -1,4 +1,4 @@
-import React, {ChangeEvent, FormEventHandler, useCallback, useState} from "react";
+import React, {FormEventHandler, useCallback, useState} from "react";
 import {SolutionLayout} from "../ui/solution-layout/solution-layout";
 import {Input} from "../ui/input/input";
 import {Button} from "../ui/button/button";
@@ -6,17 +6,13 @@ import {Circle} from "../ui/circle/circle";
 import {ElementStates} from "../../types/element-states";
 import {DELAY_IN_MS} from "../../constants/delays";
 import {TCircle} from "../../types/circle";
-import {pause} from "../../utils";
+import {clearInput, pause} from "../../utils";
+import {useForm} from "../../hooks/use-form";
 
 export const StringComponent: React.FC = () => {
-  const [ inputString, setInputString ] = useState('');
+  const { values, setValues, handleChange } = useForm<{ str: string }>({str: ""});
   const [ reversing, setReversing ] = useState(false);
   const [ circles, setCircles ] = useState<TCircle[]>([]);
-
-  const onChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target;
-    setInputString(value);
-  }
 
   const reverseArr = useCallback(async (arr: TCircle[]) => {
     let start = 0;
@@ -56,10 +52,17 @@ export const StringComponent: React.FC = () => {
   const startAnimation: FormEventHandler = (evt) => {
     evt.preventDefault();
     setReversing(true);
-    const stringArr = inputString.split('');
+    const stringArr = values.str.split('');
     const newCircles = stringArr.map(item => ({value: item, state: ElementStates.Default}));
     setCircles(newCircles);
-    setTimeout(() => {reverseArr(newCircles).then(() => setReversing(false))}, DELAY_IN_MS);
+    setTimeout(() => {reverseArr(newCircles).then(() => {
+      const input = document.querySelector<HTMLInputElement>("input");
+      if (input) {
+        clearInput(input);
+      }
+      setValues({str: ""});
+      setReversing(false);
+    })}, DELAY_IN_MS);
   };
 
   return (
@@ -67,8 +70,8 @@ export const StringComponent: React.FC = () => {
       <div className="container">
         <form action="#" onSubmit={startAnimation}>
           <div className="condition">
-            <Input maxLength={11} isLimitText={true} onChange={onChange} name={'string'} disabled={reversing}/>
-            <Button text={'Развернуть'} type={'submit'} disabled={!inputString.length} isLoader={reversing}/>
+            <Input maxLength={11} isLimitText={true} onChange={handleChange} name={'str'} disabled={reversing}/>
+            <Button text={'Развернуть'} type={'submit'} disabled={!values.str.length} isLoader={reversing}/>
           </div>
         </form>
         <div className="vis">

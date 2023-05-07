@@ -1,4 +1,4 @@
-import React, {ChangeEvent, FormEventHandler, useCallback, useMemo, useState} from "react";
+import React, {FormEventHandler, useCallback, useMemo, useState} from "react";
 import {SolutionLayout} from "../ui/solution-layout/solution-layout";
 import {Input} from "../ui/input/input";
 import {Button} from "../ui/button/button";
@@ -8,21 +8,21 @@ import {Circle} from "../ui/circle/circle";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
 import {TCircle} from "../../types/circle";
 import {Stack} from "./stack";
+import {BaseAnim} from "../queue-page/queue-page";
+import {clearInput} from "../../utils";
+import {useForm} from "../../hooks/use-form";
 
 export const StackPage: React.FC = () => {
-  const [ inputString, setInputString ] = useState<string>("");
+  const { values, setValues, handleChange } = useForm<{ str: string }>({ str: "" });
   const [ circles, setCircles ] = useState<TCircle[]>([]);
+  const [ anim, setAnim ] = useState<BaseAnim | null>(null);
 
   const stack = useMemo(() => new Stack<string>(), []);
 
-  const onChange = useCallback((evt: ChangeEvent<HTMLInputElement>) => {
-    evt.preventDefault();
-    setInputString(evt.target.value);
-  }, []);
-
   const onSubmit: FormEventHandler<HTMLFormElement> = useCallback((evt) => {
     evt.preventDefault();
-    stack.push(inputString);
+    setAnim(BaseAnim.add);
+    stack.push(values.str);
 
     const arr = stack.getElements();
 
@@ -30,22 +30,22 @@ export const StackPage: React.FC = () => {
 
     setTimeout(() => {
       setCircles(arr.map(item => ({ value: item, state: ElementStates.Default })));
+      setAnim(null);
+      const input: HTMLInputElement | null = document.querySelector(".text_type_input");
+      if (input) {
+        clearInput(input);
+      }
+      setValues({ str: "" });
     }, SHORT_DELAY_IN_MS);
-
-    const input: HTMLInputElement | null = document.querySelector(".text_type_input");
-    if (input) {
-      input.value = "";
-      const e = new Event("change");
-      input.dispatchEvent(e);
-    }
-    setInputString("");
-  }, [inputString, stack]);
+  }, [values.str, stack, setValues]);
 
   const onDelete = useCallback(() => {
+    setAnim(BaseAnim.delete);
     setCircles(circles.slice().map((item, index) => ({ value: item.value, state: index === circles.length - 1 ? ElementStates.Changing : ElementStates.Default })));
     setTimeout(() => {
       stack.pop();
       setCircles(stack.getElements().map(item => ({ value: item, state: ElementStates.Default })));
+      setAnim(null);
     }, SHORT_DELAY_IN_MS);
   }, [circles, stack]);
 
@@ -62,24 +62,27 @@ export const StackPage: React.FC = () => {
             <Input
               maxLength={4}
               isLimitText={true}
-              onChange={onChange}
-              name={"string"}
+              onChange={handleChange}
+              name={"str"}
               extraClass={styles.input}
+              disabled={!!anim}
             />
             <Button
               text={"Добавить"}
               type={"submit"}
-              disabled={!inputString.length}
+              disabled={!values.str.length || (!!anim && anim !== BaseAnim.add)}
+              isLoader={anim === BaseAnim.add}
             />
             <Button
               text={"Удалить"}
-              disabled={!circles.length}
+              disabled={!circles.length || (!!anim && anim !== BaseAnim.delete)}
+              isLoader={anim === BaseAnim.delete}
               onClick={onDelete}
             />
             <Button
               text={"Очистить"}
               type={"reset"}
-              disabled={!circles.length}
+              disabled={!circles.length || !!anim}
               style={{marginLeft: "auto"}}
               onClick={reset}
             />
@@ -100,5 +103,5 @@ export const StackPage: React.FC = () => {
         </div>
       </div>
     </SolutionLayout>
-  );
-};
+  )
+}

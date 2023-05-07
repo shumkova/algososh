@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {SolutionLayout} from "../ui/solution-layout/solution-layout";
 import {Button} from "../ui/button/button";
 import {RadioInput} from "../ui/radio-input/radio-input";
@@ -9,6 +9,7 @@ import {ElementStates} from "../../types/element-states";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
 import {pause, randomArr} from "../../utils";
 import {swap} from "./utils";
+import {useForm} from "../../hooks/use-form";
 
 type TColumn = {
   value: number;
@@ -21,7 +22,7 @@ enum SortingMethod {
 }
 
 export const SortingPage: React.FC = () => {
-  const [ method, setMethod ] = useState<SortingMethod>(SortingMethod.selection);
+  const { values, handleChange } = useForm<{method: SortingMethod}>({ method: SortingMethod.selection});
   const [ sorting, setSorting ] = useState(false);
   const [ direction, setDirection] = useState<Direction>(Direction.Ascending);
   const [ columns, setColumns ] = useState<TColumn[]>([]);
@@ -95,20 +96,16 @@ export const SortingPage: React.FC = () => {
     setDirection(direction);
     setSorting(true);
 
-    if (method === SortingMethod.selection) {
+    if (values.method === SortingMethod.selection) {
       selectionSort(arr, direction).then(() => setSorting(false));
     } else {
       bubbleSort(arr, direction).then(() => setSorting(false));
     }
-  }, [selectionSort, columns, method, bubbleSort]);
+  }, [selectionSort, columns, values.method, bubbleSort]);
 
   const generateArr = useCallback(() => {
     setColumns(randomArr(3, 17).map(item => ({value: item, state: ElementStates.Default})));
   }, []);
-
-  const onChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    setMethod(evt.target.value as SortingMethod);
-  }
 
   useEffect(() => {
     generateArr();
@@ -123,17 +120,17 @@ export const SortingPage: React.FC = () => {
               label={"Выбор"}
               name={"method"}
               value={"selection"}
-              onChange={onChange}
+              onChange={handleChange}
               extraClass={styles.radio}
-              checked={method === SortingMethod.selection}
+              checked={values.method === SortingMethod.selection}
               disabled={sorting} />
             <RadioInput
               label={"Пузырёк"}
               name={"method"}
               value={"bubble"}
-              onChange={onChange}
+              onChange={handleChange}
               extraClass={styles.radio}
-              checked={method === SortingMethod.bubble}
+              checked={values.method === SortingMethod.bubble}
               disabled={sorting} />
             <Button
               text={"По возрастанию"}
