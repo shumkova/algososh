@@ -1,15 +1,12 @@
-import React, {ChangeEvent, FormEventHandler, useState} from "react";
+import React, {ChangeEvent, FormEventHandler, useCallback, useState} from "react";
 import {SolutionLayout} from "../ui/solution-layout/solution-layout";
 import {Input} from "../ui/input/input";
 import {Button} from "../ui/button/button";
 import {Circle} from "../ui/circle/circle";
 import {ElementStates} from "../../types/element-states";
 import {DELAY_IN_MS} from "../../constants/delays";
-
-type TCircle = {
-  value: string;
-  state?: ElementStates;
-}
+import {TCircle} from "../../types/circle";
+import {pause} from "../../utils";
 
 export const StringComponent: React.FC = () => {
   const [ inputString, setInputString ] = useState('');
@@ -21,7 +18,7 @@ export const StringComponent: React.FC = () => {
     setInputString(value);
   }
 
-  async function reverseArr(arr: TCircle[]) {
+  const reverseArr = useCallback(async (arr: TCircle[]) => {
     let start = 0;
     let end = arr.length - 1;
 
@@ -38,12 +35,8 @@ export const StringComponent: React.FC = () => {
       arr[start].state = ElementStates.Modified;
       arr[end].state = ElementStates.Modified;
 
-      await new Promise(resolve => {
-        setTimeout(() => {
-          setCircles([...arr]);
-          resolve('');
-        }, DELAY_IN_MS);
-      })
+      await pause();
+      setCircles([...arr]);
 
       start++;
       end--;
@@ -58,18 +51,15 @@ export const StringComponent: React.FC = () => {
     if (arr.length === 1) {
       setCircles([{value: arr[0].value, state: ElementStates.Modified}]);
     }
-
-    setReversing(false);
-  }
+  }, []);
 
   const startAnimation: FormEventHandler = (evt) => {
     evt.preventDefault();
     setReversing(true);
-
     const stringArr = inputString.split('');
     const newCircles = stringArr.map(item => ({value: item, state: ElementStates.Default}));
     setCircles(newCircles);
-    setTimeout(() => {reverseArr(newCircles)}, DELAY_IN_MS);
+    setTimeout(() => {reverseArr(newCircles).then(() => setReversing(false))}, DELAY_IN_MS);
   };
 
   return (

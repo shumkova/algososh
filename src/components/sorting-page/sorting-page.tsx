@@ -8,8 +8,9 @@ import {Column} from "../ui/column/column";
 import {ElementStates} from "../../types/element-states";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
 import {pause, randomArr} from "../../utils";
+import {swap} from "./utils";
 
-type TColumns = {
+type TColumn = {
   value: number;
   state?: ElementStates;
 }
@@ -19,25 +20,19 @@ enum SortingMethod {
   bubble = "bubble"
 }
 
-const swap = (arr: TColumns[], firstIndex: number, secondIndex: number): void => {
-  const temp = arr[firstIndex];
-  arr[firstIndex] = arr[secondIndex];
-  arr[secondIndex] = temp;
-};
-
 export const SortingPage: React.FC = () => {
   const [ method, setMethod ] = useState<SortingMethod>(SortingMethod.selection);
   const [ sorting, setSorting ] = useState(false);
   const [ direction, setDirection] = useState<Direction>(Direction.Ascending);
-  const [ columns, setColumns ] = useState<TColumns[]>([]);
+  const [ columns, setColumns ] = useState<TColumn[]>([]);
 
-  const selectionSort = useCallback(async (arr: TColumns[], direction: Direction) => {
+  const selectionSort = useCallback(async (arr: TColumn[], direction: Direction) => {
     const { length } = arr;
     for (let i = 0; i < length - 1; i++) {
       let ind = i;
       arr[i].state = ElementStates.Changing;
 
-      for (let k = i + 1; k < length - 1; k++) {
+      for (let k = i + 1; k < length; k++) {
         arr[k].state = ElementStates.Changing;
         setColumns([...arr]);
 
@@ -67,9 +62,9 @@ export const SortingPage: React.FC = () => {
 
     arr[length - 1].state = ElementStates.Modified;
     setColumns([...arr]);
-  }, [setColumns]);
+  }, []);
 
-  const bubbleSort = useCallback(async (arr: TColumns[], direction: Direction) => {
+  const bubbleSort = useCallback(async (arr: TColumn[], direction: Direction) => {
     for (let i = 0; i < arr.length; i++) {
       for (let j = 0; j < (arr.length - i - 1); j++) {
         arr[j].state = ElementStates.Changing;
@@ -105,7 +100,7 @@ export const SortingPage: React.FC = () => {
     } else {
       bubbleSort(arr, direction).then(() => setSorting(false));
     }
-  }, [setDirection, setSorting, selectionSort, columns, method]);
+  }, [selectionSort, columns, method, bubbleSort]);
 
   const generateArr = useCallback(() => {
     setColumns(randomArr(3, 17).map(item => ({value: item, state: ElementStates.Default})));

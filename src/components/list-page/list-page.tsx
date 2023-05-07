@@ -7,14 +7,13 @@ import {useForm} from "../../hooks/use-form";
 import {ElementStates} from "../../types/element-states";
 import {Circle} from "../ui/circle/circle";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
-import {pause} from "../../utils";
-import {LinkedList} from "../../utils/linked-list";
+import {pause, randomArr} from "../../utils";
+import {LinkedList} from "./linked-list";
+import {TCircle} from "../../types/circle";
 
-type TCircle = {
-  value: string;
+type TListCircle = TCircle & {
   head: string | React.ReactElement | null;
   tail: string | React.ReactElement | null;
-  state?: ElementStates;
 }
 
 enum Anim {
@@ -28,10 +27,10 @@ enum Anim {
 
 export const ListPage: React.FC = () => {
   const { values, setValues, handleChange } = useForm<{value: string; position: string}>({value: "", position: ""});
-  const [ circles, setCircles ] = useState<TCircle[]>([]);
+  const [ circles, setCircles ] = useState<TListCircle[]>([]);
   const [ anim, setAnim ] = useState<Anim | null>(null);
 
-  const linkedList = useMemo(() => new LinkedList<string>(), []);
+  const linkedList = useMemo(() => new LinkedList(randomArr(1,6).map(item => item.toString())), []);
 
   const createDefaultCircles = useCallback((arr: string[]) => {
     if (!arr.length) {
@@ -59,18 +58,14 @@ export const ListPage: React.FC = () => {
   }, [createDefaultCircles, clearInputs]);
 
   useEffect(() => {
-    linkedList.append("0");
-    linkedList.append("34");
-    linkedList.append("8");
-    linkedList.append("1");
-    setCircles(createDefaultCircles(linkedList.toArr()));
+    setCircles(createDefaultCircles(linkedList.toArray()));
   }, [linkedList, createDefaultCircles]);
 
   const addHead = useCallback(async () => {
     setAnim(Anim.addHead);
     setCircles(circles.slice().map((item, index) => index === 0 ? {...item, head: (<Circle isSmall={true} letter={values.value} state={ElementStates.Changing}/>) } : item));
-    linkedList.insertAt(values.value, 0);
-    const arr = linkedList.toArr();
+    linkedList.addByIndex(values.value, 0);
+    const arr = linkedList.toArray();
     await pause(SHORT_DELAY_IN_MS);
     setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: index === 0 ? ElementStates.Modified : ElementStates.Default })));
     await pause(SHORT_DELAY_IN_MS);
@@ -81,7 +76,7 @@ export const ListPage: React.FC = () => {
     setAnim(Anim.addTail);
     setCircles(circles.slice().map((item, index) => index === circles.length - 1 ? {...item, head: (<Circle isSmall={true} letter={values.value} state={ElementStates.Changing}/>) } : item));
     linkedList.append(values.value);
-    const arr = linkedList.toArr();
+    const arr = linkedList.toArray();
     await pause(SHORT_DELAY_IN_MS);
     setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: arr[index + 1] ? ElementStates.Default : ElementStates.Modified })));
     await pause(SHORT_DELAY_IN_MS);
@@ -91,9 +86,9 @@ export const ListPage: React.FC = () => {
   const removeHead = useCallback(async () => {
     setAnim(Anim.removeHead);
     setCircles(circles.slice().map((item, index) => index === 0 ? {...item, value: "", tail: (<Circle isSmall={true} letter={item.value} state={ElementStates.Changing}/>) } : item));
-    linkedList.removeFrom(0);
+    linkedList.deleteHead();
     await pause(SHORT_DELAY_IN_MS);
-    const arr = linkedList.toArr();
+    const arr = linkedList.toArray();
     endAnim(arr);
   }, [circles, linkedList, endAnim]);
 
@@ -101,9 +96,9 @@ export const ListPage: React.FC = () => {
     setAnim(Anim.removeTail);
     const tail = linkedList.getSize() - 1;
     setCircles(circles.slice().map((item, index) => index === tail ? {...item, value: "", tail: (<Circle isSmall={true} letter={item.value} state={ElementStates.Changing}/>) } : item));
-    linkedList.removeFrom(tail);
+    linkedList.deleteTail();
     await pause(SHORT_DELAY_IN_MS);
-    const arr = linkedList.toArr();
+    const arr = linkedList.toArray();
     endAnim(arr);
   }, [circles, linkedList, endAnim]);
 
@@ -124,8 +119,8 @@ export const ListPage: React.FC = () => {
     }
 
     await pause();
-    linkedList.insertAt(value, pos);
-    const arr = linkedList.toArr();
+    linkedList.addByIndex(value, pos);
+    const arr = linkedList.toArray();
     setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: index === pos ? ElementStates.Modified : ElementStates.Default })));
     await pause();
     endAnim(arr);
@@ -148,8 +143,8 @@ export const ListPage: React.FC = () => {
         {...item, state: ElementStates.Changing }
         : item));
     await pause();
-    linkedList.removeFrom(pos);
-    const arr = linkedList.toArr();
+    linkedList.deleteByIndex(pos);
+    const arr = linkedList.toArray();
     endAnim(arr);
   }, [circles, values, linkedList, endAnim]);
 
@@ -226,7 +221,7 @@ export const ListPage: React.FC = () => {
             />
           </div>
         </form>
-        <div className="vis vis_align-center" style={{minHeight: 150}}>
+        <div className="vis vis_page_list" style={{minHeight: 150}}>
           {
             circles.map((item, index) => {
               return (

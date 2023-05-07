@@ -1,25 +1,31 @@
-import {Node} from "./node";
+import {Node} from "../../utils/node";
 
 interface ILinkedList<T> {
   append: (element: T) => void;
-  insertAt: (element: T, index: number) => void;
-  removeFrom: (index: number) => void;
+  addByIndex: (element: T, index: number) => void;
+  deleteByIndex: (index: number) => void;
+  deleteHead: () => void;
+  deleteTail: () => void;
   getSize: () => number;
-  print: () => void;
   getHead: () => Node<T> | null;
-  toArr: () => T[];
+  toArray: () => T[];
 }
 
 export class LinkedList<T> implements ILinkedList<T> {
   private head: Node<T> | null;
   private size: number;
-  constructor() {
+  constructor( arr?: T[] ) {
     this.head = null;
     this.size = 0;
+
+    if (arr && arr.length > 0) {
+      arr.forEach(item => this.append(item));
+    }
   }
-  insertAt(element: T, index: number) {
+
+  addByIndex(element: T, index: number) {
     if (index < 0 || index > this.size) {
-      console.log('Enter a valid index');
+      console.log("Enter a valid index");
       return;
     } else {
       const node = new Node(element);
@@ -44,6 +50,7 @@ export class LinkedList<T> implements ILinkedList<T> {
       this.size++;
     }
   }
+
   append(element: T) {
     const node = new Node(element);
     let current;
@@ -58,7 +65,8 @@ export class LinkedList<T> implements ILinkedList<T> {
     }
     this.size++;
   }
-  removeFrom(position: number) {
+
+  deleteByIndex(position: number) {
     if (position < 0 || position > this.size) {
       return "Enter a valid index";
     }
@@ -87,22 +95,32 @@ export class LinkedList<T> implements ILinkedList<T> {
     }
     this.size--;
   }
+
+  deleteHead() {
+    if (!this.head) {
+      return "List is empty";
+    }
+    let temp = this.head;
+    this.head = temp.next;
+    this.size--;
+  }
+
+  deleteTail() {
+    if (this.size === 0) {
+      return "List is empty";
+    }
+    this.deleteByIndex(this.size - 1);
+  }
+
   getSize() {
     return this.size;
   }
+
   getHead() {
     return this.head;
   }
-  print() {
-    let curr = this.head;
-    let res = "";
-    while (curr) {
-      res += `${curr.value} `;
-      curr = curr.next;
-    }
-    console.log(res);
-  }
-  toArr() {
+
+  toArray() {
     let curr = this.head;
     let res = [];
     while (curr) {

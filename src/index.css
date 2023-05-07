@@ -28,7 +28,7 @@ code {
 }
 
 .vis {
-  padding: 48px 0;
+  padding: 70px 0 48px;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -38,24 +38,23 @@ code {
   margin-left: 0;
 }
 
-.vis_align-center {
-  align-items: center;
-}
-
 .vis_columns {
   box-sizing: border-box;
   flex-wrap: nowrap;
-  min-height: 440px;
+  min-height: 460px;
+}
+
+.vis_page_list {
+  padding-top: 82px;
+  padding-bottom: 58px;
+  align-items: center;
 }
 
 .vis__item {
   display: flex;
   align-items: center;
   gap: 0 16px;
-}
-
-.vis__arrow {
-
+  padding-bottom: 50px;
 }
 
 .vis__arrow_state_default {

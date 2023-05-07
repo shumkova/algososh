@@ -5,6 +5,7 @@ import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
 import { SHORT_DELAY_IN_MS } from "../../constants/delays";
 import styles from "./fibonacci-page.module.css";
+import {pause} from "../../utils";
 
 export const FibonacciPage: React.FC = () => {
   const [ inputNumber, setInputNumber ] = useState<number | null>(null);
@@ -17,15 +18,6 @@ export const FibonacciPage: React.FC = () => {
     setInputNumber(Number(evt.target.value));
   }
 
-  const pushToCircles = useCallback((arr: number[]): Promise<boolean> => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        setCircles([...arr]);
-        resolve(true);
-      }, SHORT_DELAY_IN_MS);
-    })
-  }, [setCircles]);
-
   const fib = useCallback(async (n:number) => {
     let arr: number[] = [];
 
@@ -36,13 +28,13 @@ export const FibonacciPage: React.FC = () => {
         arr.push(arr[i - 2] + arr[i - 1]);
       }
 
-      await pushToCircles(arr);
+      await pause(SHORT_DELAY_IN_MS);
+      setCircles([...arr]);
     }
-  }, [pushToCircles]);
+  }, []);
 
   const onSubmit: FormEventHandler = (evt) => {
     evt.preventDefault();
-
     if (inputNumber && isValid) {
       setCalculating(true);
       fib(inputNumber).then(() => setCalculating(false));

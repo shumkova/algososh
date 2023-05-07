@@ -6,44 +6,8 @@ import styles from "./stack-page.module.css";
 import {ElementStates} from "../../types/element-states";
 import {Circle} from "../ui/circle/circle";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
-
-interface IStack<T> {
-  push: (item: T) => void;
-  pop: () => void;
-  peak: () => T | null;
-  clear: () => void;
-  getArray: () => T[];
-  getSize: () => number;
-}
-
-export class Stack<T> implements IStack<T> {
-  private container: T[] = [];
-  push = (item: T): void => {
-    this.container.push(item);
-  };
-  pop = (): void => {
-    if (this.getSize() > 0){
-      this.container.pop();
-    }
-  };
-  peak = (): T | null => {
-    const size = this.getSize();
-    if (size > 0 ) {
-      return this.container[size - 1];
-    }
-    return null;
-  };
-  clear = (): void => {
-    this.container = [];
-  }
-  getArray = (): T[] => this.container;
-  getSize = () => this.container.length;
-}
-
-type TCircle = {
-  value: string;
-  state?: ElementStates;
-}
+import {TCircle} from "../../types/circle";
+import {Stack} from "./stack";
 
 export const StackPage: React.FC = () => {
   const [ inputString, setInputString ] = useState<string>("");
@@ -54,18 +18,15 @@ export const StackPage: React.FC = () => {
   const onChange = useCallback((evt: ChangeEvent<HTMLInputElement>) => {
     evt.preventDefault();
     setInputString(evt.target.value);
-  }, [setInputString]);
+  }, []);
 
   const onSubmit: FormEventHandler<HTMLFormElement> = useCallback((evt) => {
     evt.preventDefault();
     stack.push(inputString);
 
-    const arr = stack.getArray();
+    const arr = stack.getElements();
 
-    setCircles(arr.map((item, index) => {
-      const isLast = index === arr.length - 1;
-      return { value: item, state: isLast ? ElementStates.Changing : ElementStates.Default};
-    }));
+    setCircles(arr.map((item, index) => ({ value: item, state: index === arr.length - 1 ? ElementStates.Changing : ElementStates.Default })));
 
     setTimeout(() => {
       setCircles(arr.map(item => ({ value: item, state: ElementStates.Default })));
@@ -78,20 +39,20 @@ export const StackPage: React.FC = () => {
       input.dispatchEvent(e);
     }
     setInputString("");
-  }, [inputString, setCircles, stack]);
+  }, [inputString, stack]);
 
   const onDelete = useCallback(() => {
     setCircles(circles.slice().map((item, index) => ({ value: item.value, state: index === circles.length - 1 ? ElementStates.Changing : ElementStates.Default })));
     setTimeout(() => {
       stack.pop();
-      setCircles(stack.getArray().map(item => ({ value: item, state: ElementStates.Default })));
+      setCircles(stack.getElements().map(item => ({ value: item, state: ElementStates.Default })));
     }, SHORT_DELAY_IN_MS);
-  }, [setCircles, circles, stack]);
+  }, [circles, stack]);
 
   const reset = useCallback(() => {
     stack.clear();
     setCircles([]);
-  }, [stack, setCircles]);
+  }, [stack]);
 
   return (
     <SolutionLayout title="Стек">
