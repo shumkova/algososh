@@ -11,3 +11,60 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.condition {
+  display: flex;
+  flex-wrap: nowrap;
+  column-gap: 12px;
+}
+
+.condition_radio {
+  align-items: center;
+}
+
+.vis {
+  padding: 70px 0 48px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 78px 16px;
+  justify-content: center;
+  list-style: none;
+  margin-left: 0;
+}
+
+.vis_columns {
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  min-height: 460px;
+}
+
+.vis_page_list {
+  padding-top: 82px;
+  padding-bottom: 58px;
+  align-items: center;
+}
+
+.vis__item {
+  display: flex;
+  align-items: center;
+  gap: 0 16px;
+  padding-bottom: 50px;
+}
+
+.vis__arrow_state_default {
+  color: var(--default-color);
+}
+
+.vis__arrow_state_changing {
+  color: var(--changing-color);
+}
+
+.vis__arrow_state_modified {
+  color: var(--modified-color);
+}

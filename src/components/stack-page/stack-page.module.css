@@ -1,0 +1,20 @@
+.input {
+  max-width: 377px;
+}
+
+.flash {
+  animation: flash;
+  animation-duration: 1000ms;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes flash {
+  from {
+    border-color: var(--changing-color);
+  }
+  to {
+    border-color: var(--default-color);
+  }
+
+}
