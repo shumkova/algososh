@@ -1,20 +1,23 @@
-import React, {FormEventHandler, useCallback, useState} from "react";
-import {SolutionLayout} from "../ui/solution-layout/solution-layout";
-import {Input} from "../ui/input/input";
-import {Button} from "../ui/button/button";
-import {Circle} from "../ui/circle/circle";
-import {ElementStates} from "../../types/element-states";
-import {DELAY_IN_MS} from "../../constants/delays";
-import {TCircle} from "../../types/circle";
-import {clearInput, pause} from "../../utils";
-import {useForm} from "../../hooks/use-form";
+import React, {FormEventHandler, useCallback, useEffect, useRef, useState} from "react";
+import { SolutionLayout } from "../ui/solution-layout/solution-layout";
+import { Input } from "../ui/input/input";
+import { Button } from "../ui/button/button";
+import { Circle } from "../ui/circle/circle";
+import { ElementStates } from "../../types/element-states";
+import { DELAY_IN_MS } from "../../constants/delays";
+import { TCircle } from "../../types/circle";
+import { clearInput } from "../../utils";
+import { useForm } from "../../hooks/use-form";
+import { delay } from "../../utils/delay";
 
 export const StringComponent: React.FC = () => {
   const { values, setValues, handleChange } = useForm<{ str: string }>({str: ""});
   const [ reversing, setReversing ] = useState(false);
   const [ circles, setCircles ] = useState<TCircle[]>([]);
+  const controller = useRef<AbortController>();
 
   const reverseArr = useCallback(async (arr: TCircle[]) => {
+    const signal = controller.current?.signal;
     let start = 0;
     let end = arr.length - 1;
 
@@ -24,14 +27,12 @@ export const StringComponent: React.FC = () => {
 
       setCircles([...arr]);
 
-      const temp = arr[start];
-      arr[start] = arr[end];
-      arr[end] = temp;
+      [arr[start], arr[end]] = [arr[end], arr[start]];
 
       arr[start].state = ElementStates.Modified;
       arr[end].state = ElementStates.Modified;
 
-      await pause();
+      await delay(DELAY_IN_MS, null, { signal });
       setCircles([...arr]);
 
       start++;
@@ -46,6 +47,13 @@ export const StringComponent: React.FC = () => {
 
     if (arr.length === 1) {
       setCircles([{value: arr[0].value, state: ElementStates.Modified}]);
+    }
+  }, []);
+
+  useEffect(() => {
+    controller.current = new AbortController();
+    return () => {
+      controller.current?.abort();
     }
   }, []);
 

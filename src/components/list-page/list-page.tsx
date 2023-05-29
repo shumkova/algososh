@@ -26,7 +26,7 @@ enum Anim {
 }
 
 export const ListPage: React.FC = () => {
-  const { values, setValues, handleChange } = useForm<{value: string; position: string}>({value: "", position: ""});
+  const { values, setValues, handleChange } = useForm<{value: string; position: number}>({value: "", position: -1});
   const [ circles, setCircles ] = useState<TListCircle[]>([]);
   const [ anim, setAnim ] = useState<Anim | null>(null);
 
@@ -45,7 +45,7 @@ export const ListPage: React.FC = () => {
       inputs.forEach(input => {
         clearInput(input);
       })
-      setValues({value: "", position: ""});
+      setValues({value: "", position: -1});
     }
   }, [setValues]);
 
@@ -103,12 +103,11 @@ export const ListPage: React.FC = () => {
   const addByIndex = useCallback(async () => {
     setAnim(Anim.addIndex);
     const { value, position } = values;
-    if (value.length === 0 || !position) {
+    if (value.length === 0 || position < 0) {
       return;
     }
-    const pos = Number(position);
 
-    for (let i = 0; i <= pos; i++) {
+    for (let i = 0; i <= position; i++) {
       await pause();
       setCircles(circles.slice().map((item, elemInd) => elemInd === i ? {...item, head: (<Circle isSmall={true} letter={value} state={ElementStates.Changing}/>) }
         : elemInd < i ?
@@ -117,9 +116,9 @@ export const ListPage: React.FC = () => {
     }
 
     await pause();
-    linkedList.addByIndex(value, pos);
+    linkedList.addByIndex(value, position);
     const arr = linkedList.toArray();
-    setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: index === pos ? ElementStates.Modified : ElementStates.Default })));
+    setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: index === position ? ElementStates.Modified : ElementStates.Default })));
     await pause();
     endAnim(arr);
   }, [circles, values, linkedList, endAnim]);
@@ -127,21 +126,20 @@ export const ListPage: React.FC = () => {
   const removeByIndex = useCallback(async () => {
     setAnim(Anim.removeIndex);
     const { position } = values;
-    if (!position) {
+    if (position < 0) {
       return;
     }
-    const pos = Number(position);
-    for (let i = 0; i <= pos; i++) {
+    for (let i = 0; i <= position; i++) {
       await pause();
       setCircles(circles.slice().map((item, elemInd) => elemInd <= i ? {...item, state: ElementStates.Changing } : item));
     }
     await pause();
-    setCircles(circles.slice().map((item, elemInd) => elemInd === pos ? {...item, value: "", tail: (<Circle isSmall={true} letter={item.value} state={ElementStates.Changing}/>) }
-      : elemInd < pos ?
+    setCircles(circles.slice().map((item, elemInd) => elemInd === position ? {...item, value: "", tail: (<Circle isSmall={true} letter={item.value} state={ElementStates.Changing}/>) }
+      : elemInd < position ?
         {...item, state: ElementStates.Changing }
         : item));
     await pause();
-    linkedList.deleteByIndex(pos);
+    linkedList.deleteByIndex(position);
     const arr = linkedList.toArray();
     endAnim(arr);
   }, [circles, values, linkedList, endAnim]);
@@ -206,14 +204,14 @@ export const ListPage: React.FC = () => {
               text={"Добавить по индексу"}
               type={"submit"}
               extraClass={styles.button}
-              disabled={!values.value || !values.position.length || Number(values.position) >= linkedList.getSize() || (!!anim && anim !==Anim.addIndex)}
+              disabled={!values.value || values.position < 0 || values.position >= linkedList.getSize() || (!!anim && anim !==Anim.addIndex)}
               onClick={addByIndex}
               isLoader={anim === Anim.addIndex}
             />
             <Button
               text={"Удалить по индексу"}
               extraClass={styles.button}
-              disabled={!linkedList.getSize() || !values.position.length || Number(values.position) >= linkedList.getSize() || (!!anim && anim !==Anim.removeIndex)}
+              disabled={!linkedList.getSize() || values.position < 0 || values.position >= linkedList.getSize() || (!!anim && anim !==Anim.removeIndex)}
               isLoader={anim === Anim.removeIndex}
               onClick={removeByIndex}
             />

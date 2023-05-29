@@ -1,47 +1,57 @@
-import React, { FormEventHandler, useCallback, useState } from "react";
+import React, {FormEventHandler, useCallback, useState, useRef, useEffect} from "react";
 import { SolutionLayout } from "../ui/solution-layout/solution-layout";
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
-import { SHORT_DELAY_IN_MS } from "../../constants/delays";
+import { DELAY_IN_MS } from "../../constants/delays";
 import styles from "./fibonacci-page.module.css";
-import {clearInput, pause} from "../../utils";
-import {useForm} from "../../hooks/use-form";
+import { clearInput } from "../../utils";
+import { useForm } from "../../hooks/use-form";
+import { getFibonacciNumbers } from "./utils";
 
 export const FibonacciPage: React.FC = () => {
-  const { values, setValues, handleChange } = useForm<{ fibLength: string }>({ fibLength: "" });
-  const [ calculating, setCalculating ] = useState(false);
-  const [ circles, setCircles ] = useState<number[]>([]);
+  const { values, setValues, handleChange } = useForm<{ fibLength: number }>({ fibLength: 0 });
+  const fibonacciNumbers = useRef<number[]>([]);
+  const intervalId = useRef<NodeJS.Timer>();
+  const [ currentAlgorithmStep, setCurrentAlgorithmStep ] = useState<number>(-1);
 
-  const fib = useCallback(async (n:number) => {
-    let arr: number[] = [];
+  const startAlgorithm = useCallback(() => {
+    fibonacciNumbers.current = getFibonacciNumbers(values.fibLength);
+    setCurrentAlgorithmStep(0);
 
-    for (let i = 0; i <= n; i++) {
-      if (i < 2) {
-        arr.push(i);
-      } else {
-        arr.push(arr[i - 2] + arr[i - 1]);
+    intervalId.current = setInterval(() => {
+      if (values.fibLength > 0) {
+        setCurrentAlgorithmStep((currentStep) => {
+          const nextStep = currentStep + 1;
+
+          if (nextStep > values.fibLength && intervalId.current) {
+            clearInterval(intervalId.current);
+            intervalId.current = undefined;
+
+            const input = document.querySelector<HTMLInputElement>("input");
+            if (input) {
+              clearInput(input);
+            }
+            setValues({ fibLength: 0 });
+          }
+
+          return nextStep;
+        })
       }
+    }, DELAY_IN_MS);
+  }, [values.fibLength, setValues]);
 
-      await pause(SHORT_DELAY_IN_MS);
-      setCircles([...arr]);
+  useEffect(() => {
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
     }
   }, []);
 
   const onSubmit: FormEventHandler = (evt) => {
     evt.preventDefault();
-    const { fibLength } = values;
-    if (fibLength.length > 0) {
-      setCalculating(true);
-      fib(Number(fibLength)).then(() => {
-        const input = document.querySelector<HTMLInputElement>("input");
-        if (input) {
-          clearInput(input);
-        }
-        setValues({fibLength: ""});
-        setCalculating(false);
-      });
-    }
+    startAlgorithm();
   }
 
   return (
@@ -49,13 +59,13 @@ export const FibonacciPage: React.FC = () => {
       <div className="container">
         <form action="#" onSubmit={onSubmit}>
           <div className="condition">
-            <Input type={'number'} isLimitText={true} onChange={handleChange} name={'fibLength'} disabled={calculating} min={0} max={19} />
-            <Button text={'Развернуть'} type={'submit'} disabled={!values.fibLength.length} isLoader={calculating}/>
+            <Input type={'number'} isLimitText={true} onChange={handleChange} name={'fibLength'} disabled={!!intervalId.current} min={0} max={19} />
+            <Button text={'Развернуть'} type={'submit'} disabled={values.fibLength <= 0} isLoader={!!intervalId.current}/>
           </div>
         </form>
         <div className="vis">
           {
-            circles.map((item, index) => <Circle letter={item.toString()} index={index} key={`${item}${index}`} extraClass={styles.fibAnim}/>)
+            fibonacciNumbers.current.map((item, index) => index <= currentAlgorithmStep ? <Circle letter={item.toString()} index={index} key={`${item}${index}`} extraClass={styles.fibAnim}/> : null)
           }
         </div>
       </div>
