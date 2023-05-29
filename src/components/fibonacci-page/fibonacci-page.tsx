@@ -24,7 +24,7 @@ export const FibonacciPage: React.FC = () => {
         setCurrentAlgorithmStep((currentStep) => {
           const nextStep = currentStep + 1;
 
-          if (nextStep > values.fibLength && intervalId.current) {
+          if (nextStep >= values.fibLength && intervalId.current) {
             clearInterval(intervalId.current);
             intervalId.current = undefined;
 
