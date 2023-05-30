@@ -1,4 +1,4 @@
-import { getReversingStringSteps, getLetterState } from "./utils";
+import { getReversingStringSteps } from "./utils";
 
 it("should reverse string with odd number of letters", () => {
   expect(getReversingStringSteps("12345"))

@@ -17,10 +17,16 @@ export const swap = (arr: any[], firstIndex: number, secondIndex: number): void 
 
 export const getSelectionSortSteps = (arr: number[], direction: Direction): TSortStep[] => {
   const { length } = arr;
+
   const steps: TSortStep[] = [{
     currentArray: [...arr],
     sortedIndexes: [],
   }]
+
+  if (arr.length < 2) {
+    return steps;
+  }
+
   for (let i = 0; i < length - 1; i++) {
     let ind = i;
 
@@ -73,6 +79,11 @@ export const getBubbleSortSteps = (arr: number[], direction: Direction): TSortSt
     currentArray: [...arr],
     sortedIndexes: []
   }]
+
+  if (arr.length === 0) {
+    return steps;
+  }
+
   let isSwapped = false;
 
   for (let i = 0; i < length; i++) {
