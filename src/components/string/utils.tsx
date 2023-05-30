@@ -1,10 +1,15 @@
 import {ElementStates} from "../../types/element-states";
 
 export const getReversingStringSteps = (string: string): string[][] => {
-  const arr = string.split('');
-  const steps = [[...arr], [...arr]]; // сначала нужно отобразить исходную строку, а потом подсветить начало анимации перестановки
+  const arr = string.split("");
 
-  if (arr.length <= 1) {
+  if (arr.length === 0) {
+    return [];
+  }
+
+  const steps = [[...arr], [...arr]]; // сначала нужно отобразить исходную строку, а потом подсветить начало или окончание анимации перестановки
+
+  if (arr.length < 2) {
     return steps;
   }
 
@@ -25,8 +30,9 @@ export const getLetterState = (
   index: number,
   maxIndex: number,
   currentStep: number,
+  isFinished: boolean
 ): ElementStates => {
-  if (index < currentStep - 1 || index > maxIndex - currentStep + 1) {
+  if (index < currentStep - 1 || index > maxIndex - currentStep + 1 || isFinished) {
     return ElementStates.Modified;
   }
 

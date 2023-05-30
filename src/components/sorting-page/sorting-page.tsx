@@ -1,20 +1,14 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {SolutionLayout} from "../ui/solution-layout/solution-layout";
 import {Button} from "../ui/button/button";
 import {RadioInput} from "../ui/radio-input/radio-input";
 import styles from "./sorting-page.module.css";
 import {Direction} from "../../types/direction";
 import {Column} from "../ui/column/column";
-import {ElementStates} from "../../types/element-states";
-import {SHORT_DELAY_IN_MS} from "../../constants/delays";
-import {pause, randomArr} from "../../utils";
-import {swap} from "./utils";
+import {MD_DELAY_IN_MS} from "../../constants/delays";
+import { randomArr } from "../../utils";
+import {getBubbleSortSteps, getColumnState, getSelectionSortSteps, TSortStep} from "./utils";
 import {useForm} from "../../hooks/use-form";
-
-type TColumn = {
-  value: number;
-  state?: ElementStates;
-}
 
 enum SortingMethod {
   selection = "selection",
@@ -22,94 +16,51 @@ enum SortingMethod {
 }
 
 export const SortingPage: React.FC = () => {
-  const { values, handleChange } = useForm<{method: SortingMethod}>({ method: SortingMethod.selection});
-  const [ sorting, setSorting ] = useState(false);
-  const [ direction, setDirection] = useState<Direction>(Direction.Ascending);
-  const [ columns, setColumns ] = useState<TColumn[]>([]);
+  const { values, handleChange } = useForm<{ method: SortingMethod }>({ method: SortingMethod.selection});
+  const [ currentDirection, setCurrentDirection] = useState<Direction>(Direction.Ascending);
+  const randomArray = useRef<number[]>(randomArr(3, 17));
 
-  const selectionSort = useCallback(async (arr: TColumn[], direction: Direction) => {
-    const { length } = arr;
-    for (let i = 0; i < length - 1; i++) {
-      let ind = i;
-      arr[i].state = ElementStates.Changing;
+  const intervalId = useRef<NodeJS.Timer>();
+  const [ algorithmSteps, setAlgorithmSteps ] = useState<TSortStep[]>([{ currentArray: randomArray.current, sortedIndexes: []}]);
+  const [ currentAlgorithmStep, setCurrentAlgorithmStep ] = useState<number>(0);
 
-      for (let k = i + 1; k < length; k++) {
-        arr[k].state = ElementStates.Changing;
-        setColumns([...arr]);
+  const startSort = (direction: Direction) => {
+    setCurrentDirection(direction);
+    const steps = (values.method === SortingMethod.selection ? getSelectionSortSteps : getBubbleSortSteps)(randomArray.current, direction);
+    setAlgorithmSteps(steps);
+    setCurrentAlgorithmStep(0);
 
-        if ((direction === Direction.Ascending && arr[k].value < arr[ind].value) ||
-          (direction === Direction.Descending && arr[k].value > arr[ind].value)) {
-          arr[ind].state = ind === i ? ElementStates.Changing : ElementStates.Default;
-          ind = k;
-        }
+    intervalId.current = setInterval(() => {
+      if (steps.length) {
+        setCurrentAlgorithmStep((currentStep) => {
+          const nextStep = currentStep + 1;
 
-        await pause(SHORT_DELAY_IN_MS);
+          if (nextStep >= steps.length - 1 && intervalId.current) {
+            clearInterval(intervalId.current);
+            intervalId.current = undefined;
+            randomArray.current = steps[steps.length - 1].currentArray;
+            return currentStep;
+          }
 
-        arr[k].state = ElementStates.Default;
-        arr[ind].state = ElementStates.Temporary;
-        setColumns([...arr]);
+          return nextStep;
+        })
       }
-
-      if (ind !== i) {
-        swap(arr, i, ind);
-        arr[ind].state = ElementStates.Default;
-      }
-
-      arr[i].state = ElementStates.Modified;
-
-      setColumns([...arr]);
-      await pause(SHORT_DELAY_IN_MS);
-    }
-
-    arr[length - 1].state = ElementStates.Modified;
-    setColumns([...arr]);
-  }, []);
-
-  const bubbleSort = useCallback(async (arr: TColumn[], direction: Direction) => {
-    for (let i = 0; i < arr.length; i++) {
-      for (let j = 0; j < (arr.length - i - 1); j++) {
-        arr[j].state = ElementStates.Changing;
-        arr[j+1].state = ElementStates.Changing;
-        setColumns([...arr]);
-
-        if ((direction === Direction.Descending && arr[j].value < arr[j + 1].value) ||
-        (direction === Direction.Ascending && arr[j].value > arr[j + 1].value)) {
-          swap(arr, j, j + 1);
-        }
-
-        await pause(SHORT_DELAY_IN_MS);
-        arr[j].state = ElementStates.Default;
-        arr[j+1].state = ElementStates.Default;
-        setColumns([...arr]);
-      }
-      arr[arr.length - i - 1].state = ElementStates.Modified;
-      setColumns([...arr]);
-    }
-  }, []);
-
-  const startSort = useCallback((direction: Direction) => {
-    let arr = columns;
-    if (columns.length && columns[0].state !== ElementStates.Default) {
-      arr = columns.map(item => ({...item, state: ElementStates.Default}))
-    }
-
-    setDirection(direction);
-    setSorting(true);
-
-    if (values.method === SortingMethod.selection) {
-      selectionSort(arr, direction).then(() => setSorting(false));
-    } else {
-      bubbleSort(arr, direction).then(() => setSorting(false));
-    }
-  }, [selectionSort, columns, values.method, bubbleSort]);
-
-  const generateArr = useCallback(() => {
-    setColumns(randomArr(3, 17).map(item => ({value: item, state: ElementStates.Default})));
-  }, []);
+    }, MD_DELAY_IN_MS);
+  }
 
   useEffect(() => {
-    generateArr();
-  }, [generateArr]);
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
+    }
+  }, []);
+
+  const generateArr = useCallback(() => {
+    randomArray.current = randomArr(3, 17);
+    setAlgorithmSteps([{ currentArray: randomArray.current, sortedIndexes: []}]);
+    setCurrentAlgorithmStep(0);
+  }, []);
 
   return (
     <SolutionLayout title="Сортировка массива">
@@ -123,7 +74,7 @@ export const SortingPage: React.FC = () => {
               onChange={handleChange}
               extraClass={styles.radio}
               checked={values.method === SortingMethod.selection}
-              disabled={sorting} />
+              disabled={!!intervalId.current} />
             <RadioInput
               label={"Пузырёк"}
               name={"method"}
@@ -131,30 +82,34 @@ export const SortingPage: React.FC = () => {
               onChange={handleChange}
               extraClass={styles.radio}
               checked={values.method === SortingMethod.bubble}
-              disabled={sorting} />
+              disabled={!!intervalId.current} />
             <Button
               text={"По возрастанию"}
               onClick={() => startSort(Direction.Ascending)}
               sorting={Direction.Ascending}
-              isLoader={direction === Direction.Ascending && sorting}
-              disabled={sorting} />
+              isLoader={currentDirection === Direction.Ascending && !!intervalId.current}
+              disabled={!!intervalId.current} />
             <Button
               text={"По убыванию"}
               onClick={() => startSort(Direction.Descending)}
               sorting={Direction.Descending}
-              isLoader={direction === Direction.Descending && sorting}
-              disabled={sorting} />
+              isLoader={currentDirection === Direction.Descending && !!intervalId.current}
+              disabled={!!intervalId.current} />
             <Button
               text={"Новый массив"}
               onClick={generateArr}
               type={"reset"}
               style={{marginLeft: "auto"}}
-              disabled={sorting} />
+              disabled={!!intervalId.current} />
           </div>
         </form>
         <div className="vis vis_columns">
           {
-            columns.map(({value, state}, index) => <Column index={value} state={state} key={`${value}${index}`} />)
+            algorithmSteps[currentAlgorithmStep].currentArray.map((item, index) => <Column
+              index={item}
+              state={getColumnState(index, algorithmSteps.length - 1, currentAlgorithmStep, algorithmSteps[currentAlgorithmStep])}
+              key={`${item}${index}`} />
+            )
           }
         </div>
       </div>
