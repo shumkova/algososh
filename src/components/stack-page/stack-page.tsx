@@ -9,7 +9,6 @@ import {SHORT_DELAY_IN_MS} from "../../constants/delays";
 import {TCircle} from "../../types/circle";
 import {Stack} from "./stack";
 import {BaseAnim} from "../queue-page/queue-page";
-import {clearInput} from "../../utils";
 import {useForm} from "../../hooks/use-form";
 
 export const StackPage: React.FC = () => {
@@ -31,10 +30,6 @@ export const StackPage: React.FC = () => {
     setTimeout(() => {
       setCircles(arr.map(item => ({ value: item, state: ElementStates.Default })));
       setAnim(null);
-      const input: HTMLInputElement | null = document.querySelector(".text_type_input");
-      if (input) {
-        clearInput(input);
-      }
       setValues({ str: "" });
     }, SHORT_DELAY_IN_MS);
   }, [values.str, stack, setValues]);
@@ -66,18 +61,21 @@ export const StackPage: React.FC = () => {
               name={"str"}
               extraClass={styles.input}
               disabled={!!anim}
+              value={values.str}
             />
             <Button
               text={"Добавить"}
               type={"submit"}
               disabled={!values.str.length || (!!anim && anim !== BaseAnim.add)}
               isLoader={anim === BaseAnim.add}
+              data-cy={"addButton"}
             />
             <Button
               text={"Удалить"}
               disabled={!circles.length || (!!anim && anim !== BaseAnim.delete)}
               isLoader={anim === BaseAnim.delete}
               onClick={onDelete}
+              data-cy={"deleteButton"}
             />
             <Button
               text={"Очистить"}
@@ -85,6 +83,7 @@ export const StackPage: React.FC = () => {
               disabled={!circles.length || !!anim}
               style={{marginLeft: "auto"}}
               onClick={reset}
+              data-cy={"clearButton"}
             />
           </div>
         </form>
