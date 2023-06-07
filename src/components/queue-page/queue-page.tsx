@@ -8,7 +8,6 @@ import {ElementStates} from "../../types/element-states";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
 import {TCircle} from "../../types/circle";
 import {Queue} from "./queue";
-import {clearInput} from "../../utils";
 import {useForm} from "../../hooks/use-form";
 
 const QUEUE_SIZE = 7;
@@ -37,10 +36,6 @@ export const QueuePage: React.FC = () => {
     setCircles(arr.map((item, index) => ({ value: item? item : "", state: index === queue.getTail() ? ElementStates.Changing : ElementStates.Default })));
     setTimeout(() => {
       setCircles(arr.map(item => ({ value: item? item : "", state: ElementStates.Default })));
-      const input: HTMLInputElement | null = document.querySelector(".text_type_input");
-      if (input) {
-        clearInput(input);
-      }
       setValues({ str: "" });
       setAnim(null);
     }, SHORT_DELAY_IN_MS);
@@ -74,18 +69,21 @@ export const QueuePage: React.FC = () => {
               name={"str"}
               extraClass={styles.input}
               disabled={queue.isFull()}
+              value={values.str}
             />
             <Button
               text={"Добавить"}
               type={"submit"}
               disabled={queue.isFull() || !values.str.length || (!!anim && anim !==BaseAnim.add)}
               isLoader={anim === BaseAnim.add}
+              data-cy={"addButton"}
             />
             <Button
               text={"Удалить"}
               disabled={queue.isEmpty() || (!!anim && anim !== BaseAnim.delete)}
               onClick={onDelete}
               isLoader={anim === BaseAnim.delete}
+              data-cy={"deleteButton"}
             />
             <Button
               text={"Очистить"}
@@ -93,6 +91,7 @@ export const QueuePage: React.FC = () => {
               disabled={queue.isEmpty() || !!anim}
               style={{marginLeft: "auto"}}
               onClick={reset}
+              data-cy={"clearButton"}
             />
           </div>
         </form>

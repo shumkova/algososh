@@ -24,7 +24,7 @@ describe("stack works correctly", () => {
     cy.get("@input").type("3").should("have.value", "3");
     cy.get("@addButton").click();
   }
-  
+
   beforeEach(() => {
     cy.visit("http://localhost:3000/stack");
     cy.get("input[name='str']").as("input");
