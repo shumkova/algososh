@@ -46,7 +46,7 @@ describe("list works correctly", () => {
   })
 
   it("should render default list", () => {
-    cy.get(circleContentSelector).should("have.length.of.at.least", 1).and("have.length.of.at.most", 6);
+    cy.get(circleContentSelector).should("have.length.of.at.least", 3).and("have.length.of.at.most", 6);
     cy.get(circleContentSelector).first().find(circleHeadSelector).should("have.text", "head");
     cy.get(circleContentSelector).last().find(circleTailSelector).should("have.text", "tail");
     cy.get(circleContentSelector).each(($el, index) => {
