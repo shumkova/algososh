@@ -60,7 +60,7 @@ export const FibonacciPage: React.FC = () => {
         <form action="#" onSubmit={onSubmit}>
           <div className="condition">
             <Input type={'number'} isLimitText={true} onChange={handleChange} name={'fibLength'} disabled={!!intervalId.current} min={0} max={19} />
-            <Button text={'Развернуть'} type={'submit'} disabled={values.fibLength <= 0} isLoader={!!intervalId.current}/>
+            <Button text={'Развернуть'} type={'submit'} disabled={values.fibLength <= 0 || values.fibLength > 19} isLoader={!!intervalId.current}/>
           </div>
         </form>
         <div className="vis">
