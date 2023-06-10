@@ -1,6 +1,6 @@
 describe('app routes', () => {
   before(() => {
-    cy.visit('http://localhost:3000');
+    cy.visit('/');
   })
 
   it('should work correctly', () => {

@@ -37,7 +37,7 @@ describe("queue works correctly", () => {
   }
 
   beforeEach(() => {
-    cy.visit("http://localhost:3000/queue");
+    cy.visit("queue");
     cy.get("input[name='str']").as("input");
     cy.get(addButtonSelector).as("addButton");
     cy.get(deleteButtonSelector).as("deleteButton");

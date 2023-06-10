@@ -25,7 +25,7 @@ const circleWrapperSelector = "[class*=vis__item]";
 
 describe("list works correctly", () => {
   beforeEach(() => {
-    cy.visit("http://localhost:3000/list");
+    cy.visit("list");
     cy.get("input[name='value']").as("valueInput");
     cy.get("input[name='position']").as("positionInput");
     cy.get("[data-cy='addHeadButton']").as("addHeadButton");

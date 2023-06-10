@@ -26,7 +26,7 @@ describe("stack works correctly", () => {
   }
 
   beforeEach(() => {
-    cy.visit("http://localhost:3000/stack");
+    cy.visit("stack");
     cy.get("input[name='str']").as("input");
     cy.get(addButtonSelector).as("addButton");
     cy.get(deleteButtonSelector).as("deleteButton");
