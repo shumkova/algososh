@@ -7,7 +7,7 @@ import {useForm} from "../../hooks/use-form";
 import {ElementStates} from "../../types/element-states";
 import {Circle} from "../ui/circle/circle";
 import {SHORT_DELAY_IN_MS} from "../../constants/delays";
-import {clearInput, pause, randomArr} from "../../utils";
+import {pause, randomArr} from "../../utils";
 import {LinkedList} from "./linked-list";
 import {TCircle} from "../../types/circle";
 
@@ -26,11 +26,11 @@ enum Anim {
 }
 
 export const ListPage: React.FC = () => {
-  const { values, setValues, handleChange } = useForm<{value: string; position: string}>({value: "", position: ""});
+  const { values, setValues, handleChange } = useForm<{value: string; position: number}>({value: "", position: -1});
   const [ circles, setCircles ] = useState<TListCircle[]>([]);
   const [ anim, setAnim ] = useState<Anim | null>(null);
 
-  const linkedList = useMemo(() => new LinkedList(randomArr(1,6).map(item => item.toString())), []);
+  const linkedList = useMemo(() => new LinkedList(randomArr(3,6).map(item => item.toString())), []);
 
   const createDefaultCircles = useCallback((arr: string[]) => {
     if (!arr.length) {
@@ -39,21 +39,11 @@ export const ListPage: React.FC = () => {
     return arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: ElementStates.Default }))
   }, []);
 
-  const clearInputs = useCallback(() => {
-    const inputs = document.querySelectorAll<HTMLInputElement>("input");
-    if (inputs.length) {
-      inputs.forEach(input => {
-        clearInput(input);
-      })
-      setValues({value: "", position: ""});
-    }
-  }, [setValues]);
-
   const endAnim = useCallback((arr: string[]) => {
     setCircles(createDefaultCircles(arr));
-    clearInputs();
+    setValues({value: "", position: -1});
     setAnim(null);
-  }, [createDefaultCircles, clearInputs]);
+  }, [createDefaultCircles, setValues]);
 
   useEffect(() => {
     setCircles(createDefaultCircles(linkedList.toArray()));
@@ -103,13 +93,14 @@ export const ListPage: React.FC = () => {
   const addByIndex = useCallback(async () => {
     setAnim(Anim.addIndex);
     const { value, position } = values;
-    if (value.length === 0 || !position) {
+    if (value.length === 0 || position < 0) {
       return;
     }
-    const pos = Number(position);
 
-    for (let i = 0; i <= pos; i++) {
-      await pause();
+    for (let i = 0; i <= position; i++) {
+      if (i > 0) {
+        await pause();
+      }
       setCircles(circles.slice().map((item, elemInd) => elemInd === i ? {...item, head: (<Circle isSmall={true} letter={value} state={ElementStates.Changing}/>) }
         : elemInd < i ?
           {...item, state: ElementStates.Changing }
@@ -117,9 +108,9 @@ export const ListPage: React.FC = () => {
     }
 
     await pause();
-    linkedList.addByIndex(value, pos);
+    linkedList.addByIndex(value, position);
     const arr = linkedList.toArray();
-    setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: index === pos ? ElementStates.Modified : ElementStates.Default })));
+    setCircles(arr.map((item, index) => ({ value: item,  head: index === 0 ? "head" : null, tail: arr[index + 1] ? null : "tail", state: index === position ? ElementStates.Modified : ElementStates.Default })));
     await pause();
     endAnim(arr);
   }, [circles, values, linkedList, endAnim]);
@@ -127,21 +118,20 @@ export const ListPage: React.FC = () => {
   const removeByIndex = useCallback(async () => {
     setAnim(Anim.removeIndex);
     const { position } = values;
-    if (!position) {
+    if (position < 0) {
       return;
     }
-    const pos = Number(position);
-    for (let i = 0; i <= pos; i++) {
+    for (let i = 0; i <= position; i++) {
       await pause();
       setCircles(circles.slice().map((item, elemInd) => elemInd <= i ? {...item, state: ElementStates.Changing } : item));
     }
     await pause();
-    setCircles(circles.slice().map((item, elemInd) => elemInd === pos ? {...item, value: "", tail: (<Circle isSmall={true} letter={item.value} state={ElementStates.Changing}/>) }
-      : elemInd < pos ?
+    setCircles(circles.slice().map((item, elemInd) => elemInd === position ? {...item, value: "", tail: (<Circle isSmall={true} letter={item.value} state={ElementStates.Changing}/>) }
+      : elemInd < position ?
         {...item, state: ElementStates.Changing }
         : item));
     await pause();
-    linkedList.deleteByIndex(pos);
+    linkedList.deleteByIndex(position);
     const arr = linkedList.toArray();
     endAnim(arr);
   }, [circles, values, linkedList, endAnim]);
@@ -159,6 +149,7 @@ export const ListPage: React.FC = () => {
               extraClass={styles.input}
               placeholder={"Введите значение"}
               disabled={!!anim}
+              value={values.value}
             />
             <Button
               text={"Добавить в head"}
@@ -166,6 +157,7 @@ export const ListPage: React.FC = () => {
               extraClass={styles.button}
               onClick={addHead}
               isLoader={anim === Anim.addHead}
+              data-cy={"addHeadButton"}
             />
             <Button
               text={"Добавить в tail"}
@@ -173,6 +165,7 @@ export const ListPage: React.FC = () => {
               extraClass={styles.button}
               onClick={addTail}
               isLoader={anim === Anim.addTail}
+              data-cy={"addTailButton"}
             />
             <Button
               text={"Удалить из head"}
@@ -180,6 +173,7 @@ export const ListPage: React.FC = () => {
               extraClass={styles.button}
               onClick={removeHead}
               isLoader={anim === Anim.removeHead}
+              data-cy={"deleteHeadButton"}
             />
             <Button
               text={"Удалить из tail"}
@@ -188,6 +182,7 @@ export const ListPage: React.FC = () => {
               extraClass={styles.button}
               onClick={removeTail}
               isLoader={anim === Anim.removeTail}
+              data-cy={"deleteTailButton"}
             />
           </div>
           <div className={`condition ${styles.condition}`}>
@@ -201,21 +196,24 @@ export const ListPage: React.FC = () => {
               max={linkedList.getSize() > 0 ? linkedList.getSize() - 1 : 0}
               isLimitText={true}
               disabled={!!anim}
+              value={values.position >= 0 ? values.position : ""}
             />
             <Button
               text={"Добавить по индексу"}
               type={"submit"}
               extraClass={styles.button}
-              disabled={!values.value || !values.position.length || Number(values.position) >= linkedList.getSize() || (!!anim && anim !==Anim.addIndex)}
+              disabled={!values.value || values.position < 0 || values.position >= linkedList.getSize() || (!!anim && anim !==Anim.addIndex)}
               onClick={addByIndex}
               isLoader={anim === Anim.addIndex}
+              data-cy={"addIndexButton"}
             />
             <Button
               text={"Удалить по индексу"}
               extraClass={styles.button}
-              disabled={!linkedList.getSize() || !values.position.length || Number(values.position) >= linkedList.getSize() || (!!anim && anim !==Anim.removeIndex)}
+              disabled={!linkedList.getSize() || values.position < 0 || values.position >= linkedList.getSize() || (!!anim && anim !==Anim.removeIndex)}
               isLoader={anim === Anim.removeIndex}
               onClick={removeByIndex}
+              data-cy={"deleteIndexButton"}
             />
           </div>
         </form>
